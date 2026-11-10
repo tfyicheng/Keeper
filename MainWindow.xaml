@@ -1,0 +1,98 @@
+﻿<Window x:Class="Keeper.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Keeper.ViewModels"
+        xmlns:views="clr-namespace:Keeper.Views"
+        mc:Ignorable="d"
+        Title="Keeper"
+        Height="720" Width="1120"
+        MinHeight="560" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize"
+        Background="{StaticResource WindowBackgroundBrush}"
+        FontFamily="{StaticResource AppFontFamily}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:WorkStateViewModel}">
+            <views:WorkStateView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AutostartViewModel}">
+            <views:AutostartView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:WhitelistViewModel}">
+            <views:WhitelistView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+            <views:SettingsView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- 左侧导航 -->
+        <Border Grid.Column="0"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,1,0">
+            <Grid Margin="16,22,16,18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Horizontal" Margin="6,0,0,24">
+                    <Border Width="32" Height="32" CornerRadius="9" Background="{StaticResource AccentBrush}">
+                        <TextBlock Text="K" Foreground="White" FontSize="16" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Keeper" FontSize="15" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="工作状态守护" Style="{StaticResource MutedText}" FontSize="11" />
+                    </StackPanel>
+                </StackPanel>
+
+                <ListBox Grid.Row="1"
+                         ItemsSource="{Binding NavItems}"
+                         SelectedItem="{Binding SelectedNavItem}"
+                         ItemContainerStyle="{StaticResource NavListBoxItem}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Glyph}" Style="{StaticResource GlyphText}"
+                                           FontSize="16" Width="22" />
+                                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                    <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Description}" FontSize="11" Margin="0,2,0,0"
+                                               Opacity="0.85" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <TextBlock Grid.Row="2" Style="{StaticResource MutedText}" FontSize="11"
+                           Text="数据保存在程序目录" TextWrapping="Wrap" />
+            </Grid>
+        </Border>
+
+        <!-- 内容区 -->
+        <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" Margin="30,26,30,22" />
+    </Grid>
+</Window>

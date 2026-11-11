@@ -38,6 +38,16 @@ namespace Keeper.Models
             }
         }
 
+        public bool RequiresAdministrator
+        {
+            get
+            {
+                // 打包应用由系统按用户权限启动，无需单独判断
+                return string.IsNullOrWhiteSpace(LaunchTarget) &&
+                       ElevationHelper.RequiresAdministrator(ExecutablePath);
+            }
+        }
+
         public string FileName
         {
             get { return System.IO.Path.GetFileName(ExecutablePath); }

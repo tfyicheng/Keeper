@@ -169,13 +169,21 @@ namespace Keeper.Services
                     }
 
                     var fullPath = Path.GetFullPath(path);
-                    if (!existingTargets.Add(fullPath))
+                    // 选中的是快捷方式时按真实目标处理，避免生成“快捷方式指向快捷方式”的套娃启动项
+                    var target = ShortcutHelper.ResolveTarget(fullPath) ?? fullPath;
+                    if (!File.Exists(target))
                     {
                         continue;
                     }
 
-                    var shortcutPath = BuildShortcutPath(folder, Path.GetFileNameWithoutExtension(fullPath));
-                    ShortcutHelper.CreateShortcut(shortcutPath, fullPath, "由 Keeper 添加的开机启动项");
+                    // 去重必须和 ReadStartupTargets 一致，按解析后的真实目标比较
+                    if (!existingTargets.Add(target))
+                    {
+                        continue;
+                    }
+
+                    var shortcutPath = BuildShortcutPath(folder, Path.GetFileNameWithoutExtension(target));
+                    ShortcutHelper.CreateShortcut(shortcutPath, target, "由 Keeper 添加的开机启动项");
                     DeleteStartupFolderApprovedValue(Path.GetFileName(shortcutPath));
                     created.Add(shortcutPath);
                 }

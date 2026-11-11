@@ -31,6 +31,7 @@ namespace Keeper.ViewModels
 
             AddFilesCommand = new RelayCommand(async () => await PickFilesAsync());
             AddCheckedStartupItemsCommand = new RelayCommand(async () => await AddCheckedStartupItemsAsync());
+            ClearAllCommand = new RelayCommand(ClearAll, () => Entries.Count > 0);
             RemoveCommand = new RelayCommand(async parameter => await RemoveAsync(parameter as WhitelistEntry));
             OpenFolderCommand = new RelayCommand(parameter => OpenFolder(parameter as WhitelistEntry));
 
@@ -45,6 +46,11 @@ namespace Keeper.ViewModels
         /// 把「启动项」页中已勾选（启用）的项目批量加入白名单。
         /// </summary>
         public ICommand AddCheckedStartupItemsCommand { get; }
+
+        /// <summary>
+        /// 一键清空白名单。
+        /// </summary>
+        public ICommand ClearAllCommand { get; }
 
         public ICommand RemoveCommand { get; }
 
@@ -70,20 +76,46 @@ namespace Keeper.ViewModels
             StatusText = Entries.Count == 0
                 ? "白名单为空。加入白名单的程序，保存快照时不会被记录。"
                 : "共 " + Entries.Count + " 个白名单程序，保存快照时将自动忽略。";
+
+            CommandManager.InvalidateRequerySuggested();
         }
 
         /// <summary>
-        /// 追加文件到白名单（支持拖拽任意格式）。
+        /// 追加文件到白名单。
         /// </summary>
         public async Task AddFilesAsync(IEnumerable<string> paths)
         {
-            var files = (paths ?? Enumerable.Empty<string>())
-                .Where(path => !string.IsNullOrWhiteSpace(path) && File.Exists(path))
-                .Select(path => Path.GetFullPath(path))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            var files = new List<string>();
+            var unresolved = new List<string>();
+            foreach (var path in paths ?? Enumerable.Empty<string>())
+            {
+                if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                {
+                    continue;
+                }
+
+                // 快捷方式按指向的目标记录，否则白名单永远匹配不到运行中的程序
+                var target = ShortcutHelper.ResolveTarget(path);
+                if (string.IsNullOrWhiteSpace(target) || !File.Exists(target))
+                {
+                    unresolved.Add(Path.GetFileNameWithoutExtension(path));
+                    continue;
+                }
+
+                var fullPath = Path.GetFullPath(target);
+                if (!files.Contains(fullPath, StringComparer.OrdinalIgnoreCase))
+                {
+                    files.Add(fullPath);
+                }
+            }
+
             if (files.Count == 0)
             {
+                if (unresolved.Count > 0)
+                {
+                    StatusText = "无法解析快捷方式的目标，已跳过：" + string.Join("、", unresolved) + "。";
+                }
+
                 return;
             }
 
@@ -107,10 +139,49 @@ namespace Keeper.ViewModels
                 StatusText = added == 0
                     ? "这些文件已经在白名单中。"
                     : "已添加 " + added + " 个程序到白名单，保存快照时将忽略它们。";
+
+                if (unresolved.Count > 0)
+                {
+                    StatusText += " 已跳过无法解析目标的快捷方式：" + string.Join("、", unresolved) + "。";
+                }
             }
             catch (Exception ex)
             {
                 StatusText = "添加失败：" + ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// 一键清空白名单（二次确认）。
+        /// </summary>
+        private void ClearAll()
+        {
+            if (Entries.Count == 0)
+            {
+                return;
+            }
+
+            var confirm = MessageBox.Show(
+                "确定要清空白名单中的 " + Entries.Count + " 个程序吗？此操作不可撤销。",
+                "清空白名单",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (confirm != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            try
+            {
+                _repository.DeleteAll();
+                Entries.Clear();
+                StatusText = "已清空白名单，保存快照时将记录所有程序。";
+                CommandManager.InvalidateRequerySuggested();
+            }
+            catch (Exception ex)
+            {
+                StatusText = "清空失败：" + ex.Message;
             }
         }
 
@@ -121,7 +192,9 @@ namespace Keeper.ViewModels
                 Title = "选择要加入白名单的程序",
                 Filter = "所有文件|*.*",
                 Multiselect = true,
-                CheckFileExists = true
+                CheckFileExists = true,
+                // 不解析快捷方式，否则指向商店应用等特殊目标的 .lnk 会无法选中
+                DereferenceLinks = false
             };
 
             if (dialog.ShowDialog() == true)
@@ -233,6 +306,7 @@ namespace Keeper.ViewModels
                 await Task.Run(() => _repository.Delete(entry.Id));
                 Entries.Remove(entry);
                 StatusText = "已从白名单移除「" + (string.IsNullOrWhiteSpace(entry.DisplayName) ? entry.FileName : entry.DisplayName) + "」。";
+                CommandManager.InvalidateRequerySuggested();
             }
             catch (Exception ex)
             {

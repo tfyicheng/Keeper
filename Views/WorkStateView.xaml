@@ -151,9 +151,8 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- 启动项列表（支持拖入任意格式文件） -->
-                    <Border Grid.Row="1" Margin="0,12,0,0" Background="Transparent"
-                            AllowDrop="True" DragOver="ItemsHost_DragOver" Drop="ItemsHost_Drop">
+                    <!-- 启动项列表 -->
+                    <Border Grid.Row="1" Margin="0,12,0,0" Background="Transparent">
                         <Grid>
                             <ScrollViewer VerticalScrollBarVisibility="Auto"
                                           HorizontalScrollBarVisibility="Disabled">
@@ -173,7 +172,26 @@
                                                 </Grid>
 
                                                 <StackPanel Grid.Column="1" Margin="10,0,8,0" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding DisplayName}" Style="{StaticResource BodyText}" />
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Margin="0,0,6,0" Padding="5,1" CornerRadius="3"
+                                                                VerticalAlignment="Center">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                    <Setter Property="Background" Value="{StaticResource SoftSurfaceBrush}" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding RequiresAdministrator}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <TextBlock Text="管理员" FontSize="10"
+                                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                                        </Border>
+                                                        <TextBlock Text="{Binding DisplayName}" Style="{StaticResource BodyText}"
+                                                                   VerticalAlignment="Center" />
+                                                    </StackPanel>
                                                     <TextBlock Text="{Binding ExecutablePath}" Style="{StaticResource MutedText}"
                                                                FontSize="11" />
                                                 </StackPanel>
@@ -209,7 +227,7 @@
                                 </ItemsControl>
                             </ScrollViewer>
 
-                            <TextBlock Text="选择一条快照后，可拖拽任意文件到这里，或点击「添加文件」追加启动项"
+                            <TextBlock Text="选择一条快照后，点击「添加文件」追加启动项"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"
                                        TextWrapping="Wrap" TextAlignment="Center" MaxWidth="240">
                                 <TextBlock.Style>

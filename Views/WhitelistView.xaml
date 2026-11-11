@@ -22,7 +22,7 @@
 
             <StackPanel VerticalAlignment="Center">
                 <TextBlock Text="白名单" Style="{StaticResource PageTitle}" />
-                <TextBlock Text="白名单中的程序保存快照时不会被记录，也可把文件拖入列表直接添加"
+                <TextBlock Text="白名单中的程序保存快照时不会被记录"
                            Style="{StaticResource PageSubtitle}" />
             </StackPanel>
 
@@ -30,6 +30,10 @@
                 <Button Content="追加已勾选的启动项" Command="{Binding AddCheckedStartupItemsCommand}"
                         Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
                         ToolTip="把「启动项」页中已勾选（启用）的项目一键加入白名单" />
+                <Button Content="清空列表" Command="{Binding ClearAllCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="0,0,8,0"
+                        Foreground="{StaticResource DangerBrush}"
+                        ToolTip="清空白名单中的全部程序" />
                 <Button Content="添加文件" Command="{Binding AddFilesCommand}"
                         Style="{StaticResource SecondaryButton}" />
             </StackPanel>
@@ -42,8 +46,7 @@
         </Border>
 
         <!-- 列表 -->
-        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,0" Padding="18,10,18,10"
-                AllowDrop="True" DragOver="EntriesHost_DragOver" Drop="EntriesHost_Drop">
+        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,0" Padding="18,10,18,10">
             <Grid>
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding Entries}">

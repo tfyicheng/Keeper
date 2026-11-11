@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Keeper.Data;
+using Keeper.Helpers;
 using Keeper.Models;
 
 namespace Keeper.Services
@@ -217,23 +218,45 @@ namespace Keeper.Services
 
                 try
                 {
-                    // 打包应用（WindowsApps）不能直接启动 exe，交给资源管理器按 AppUserModelID 打开
-                    var startInfo = usesShellTarget
-                        ? new ProcessStartInfo
-                        {
-                            FileName = "explorer.exe",
-                            Arguments = item.LaunchTarget,
-                            UseShellExecute = true
-                        }
-                        : new ProcessStartInfo
+                    if (!usesShellTarget && ElevationHelper.RequiresAdministrator(item.ExecutablePath))
+                    {
+                        // 需要管理员权限的程序直接启动：继承 Keeper 的管理员令牌，
+                        // 不会像交给资源管理器那样弹出 UAC 确认框
+                        Process.Start(new ProcessStartInfo
                         {
                             FileName = item.ExecutablePath,
                             Arguments = item.Arguments ?? string.Empty,
                             UseShellExecute = true,
                             WorkingDirectory = Path.GetDirectoryName(item.ExecutablePath) ?? string.Empty
-                        };
+                        });
+                    }
+                    else if (!usesShellTarget && !string.IsNullOrWhiteSpace(item.Arguments))
+                    {
+                        // 带启动参数时无法交给资源管理器转发，只能直接启动
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = item.ExecutablePath,
+                            Arguments = item.Arguments,
+                            UseShellExecute = true,
+                            WorkingDirectory = Path.GetDirectoryName(item.ExecutablePath) ?? string.Empty
+                        });
+                    }
+                    else
+                    {
+                        // 普通程序交给资源管理器启动，保持与双击打开一致的普通权限：
+                        // 1. 打包应用（WindowsApps）不能直接启动 exe，只能按 AppUserModelID 打开；
+                        // 2. Keeper 以管理员身份运行，直接启动会让目标程序继承管理员权限，
+                        //    微信、TranslucentTB 等程序在管理员权限下会启动失败。
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "explorer.exe",
+                            Arguments = usesShellTarget
+                                ? item.LaunchTarget
+                                : "\"" + item.ExecutablePath + "\"",
+                            UseShellExecute = true
+                        });
+                    }
 
-                    Process.Start(startInfo);
                     result.Started++;
                     running.Add(item.ExecutablePath);
                 }

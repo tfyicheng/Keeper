@@ -35,7 +35,7 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock Text="开机自动启动 Keeper" Style="{StaticResource BodyText}" />
-                                <TextBlock Text="登录 Windows 后自动运行本软件，便于重启后恢复工作状态"
+                                <TextBlock Text="通过 Windows 计划任务在登录后自动运行，并以管理员权限启动，登录时不会再弹权限确认"
                                            Style="{StaticResource MutedText}" Margin="0,4,0,0" TextWrapping="Wrap" />
                             </StackPanel>
                             <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitch}" Margin="16,0,0,0"

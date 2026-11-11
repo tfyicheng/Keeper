@@ -65,6 +65,8 @@ namespace Keeper
 
             _trayIcon = new TrayIconService(ShowMainWindow, SaveFromTray, SaveAndRestart, ExitApplication);
 
+            CheckAutostartTaskPath();
+
             if (_viewModel.Settings.AutoRestoreOnLaunch)
             {
                 Dispatcher.BeginInvoke(
@@ -185,10 +187,60 @@ namespace Keeper
             _trayIcon?.ShowBalloon("Keeper 仍在运行", "双击托盘图标可重新打开主界面，右键可保存工作状态或退出程序。");
         }
 
+        /// <summary>
+        /// 启动时检查计划任务里的程序路径是否与当前程序一致，不一致时提示重建。
+        /// </summary>
+        private void CheckAutostartTaskPath()
+        {
+            var service = new SelfStartupService();
+            var taskPath = service.GetTaskExecutablePath();
+            if (!service.IsPathMismatched(taskPath))
+            {
+                return;
+            }
+
+            var choice = MessageBox.Show(
+                _mainWindow,
+                "检测到开机启动任务指向的程序路径与当前程序不一致：" + Environment.NewLine + Environment.NewLine +
+                "任务：" + taskPath + Environment.NewLine +
+                "当前：" + AppPaths.ExecutablePath + Environment.NewLine + Environment.NewLine +
+                "是否删除旧任务并按当前路径重新创建？",
+                AppPaths.AppDisplayName,
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (choice != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            try
+            {
+                service.RepairTask();
+                MessageBox.Show(
+                    "已按当前路径重新创建开机启动任务。",
+                    AppPaths.AppDisplayName,
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "重新创建开机启动任务失败：" + ex.Message,
+                    AppPaths.AppDisplayName,
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
         private async Task RestoreOnStartupAsync(MainViewModel viewModel)
         {
             try
             {
+                // 开机登录时桌面可能还没准备好，等任务栏创建后再恢复，
+                // 否则 TranslucentTB 等依赖任务栏的程序会启动失败
+                await ShellReadyHelper.WaitForDesktopAsync();
+
                 // 优先恢复设置中选中的快照；未选择时回退到最近一次快照
                 var targets = viewModel.Settings.GetStartupSnapshots();
                 if (targets.Count > 0)

@@ -120,9 +120,11 @@
     <Compile Include="Data\WhitelistRepository.cs" />
     <Compile Include="Helpers\AppPaths.cs" />
     <Compile Include="Helpers\CommandLineHelper.cs" />
+    <Compile Include="Helpers\ElevationHelper.cs" />
     <Compile Include="Helpers\IconLoader.cs" />
     <Compile Include="Helpers\PrivilegeHelper.cs" />
     <Compile Include="Helpers\ProcessPathHelper.cs" />
+    <Compile Include="Helpers\ShellReadyHelper.cs" />
     <Compile Include="Helpers\ShortcutHelper.cs" />
     <Compile Include="Helpers\WindowEnumerator.cs" />
     <Compile Include="Infrastructure\ObservableObject.cs" />

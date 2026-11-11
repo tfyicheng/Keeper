@@ -67,6 +67,19 @@ VALUES (@path, @name, @createdAt);";
         }
 
         /// <summary>
+        /// 清空全部白名单条目。
+        /// </summary>
+        public void DeleteAll()
+        {
+            using (var connection = Database.Open())
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "DELETE FROM Whitelist;";
+                command.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
         /// 从白名单中移除。
         /// </summary>
         public void Delete(long id)

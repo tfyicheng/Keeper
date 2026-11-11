@@ -171,7 +171,9 @@ namespace Keeper.ViewModels
                 Title = "选择要开机启动的文件",
                 Filter = "所有文件|*.*",
                 Multiselect = true,
-                CheckFileExists = true
+                CheckFileExists = true,
+                // 不解析快捷方式，否则指向商店应用等特殊目标的 .lnk 会无法选中
+                DereferenceLinks = false
             };
 
             if (dialog.ShowDialog() == true)

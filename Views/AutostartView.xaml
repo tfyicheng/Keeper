@@ -23,7 +23,7 @@
             <StackPanel VerticalAlignment="Center">
                 <TextBlock Text="启动项" Style="{StaticResource PageTitle}" />
                 <TextBlock Style="{StaticResource PageSubtitle}">
-                    <Run Text="扫描系统注册表与启动文件夹中的开机启动项目，也可把文件拖入列表直接追加" />
+                    <Run Text="扫描系统注册表与启动文件夹中的开机启动项目" />
                     <Run Text="  ·  " />
                     <Run Text="{Binding SummaryText, Mode=OneWay}" />
                 </TextBlock>
@@ -63,8 +63,7 @@
         </Border>
 
         <!-- 列表 -->
-        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,0" Padding="18,10,18,10"
-                AllowDrop="True" DragOver="EntriesHost_DragOver" Drop="EntriesHost_Drop">
+        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,16,0,0" Padding="18,10,18,10">
             <Grid>
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding EntriesView}">

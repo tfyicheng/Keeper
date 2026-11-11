@@ -180,7 +180,7 @@ namespace Keeper.ViewModels
         }
 
         /// <summary>
-        /// 向当前快照追加文件（支持拖拽任意格式）。
+        /// 向当前快照追加文件。
         /// </summary>
         public async Task AddFilesAsync(IEnumerable<string> paths)
         {
@@ -324,7 +324,9 @@ namespace Keeper.ViewModels
                 Title = "选择要加入快照的文件",
                 Filter = "所有文件|*.*",
                 Multiselect = true,
-                CheckFileExists = true
+                CheckFileExists = true,
+                // 不解析快捷方式，否则指向商店应用等特殊目标的 .lnk 会无法选中
+                DereferenceLinks = false
             };
 
             if (dialog.ShowDialog() == true)

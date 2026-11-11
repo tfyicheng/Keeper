@@ -1,6 +1,8 @@
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 using Keeper.Data;
 using Keeper.Views;
 
@@ -21,6 +23,28 @@ namespace Keeper
         public MainWindow()
         {
             InitializeComponent();
+            KeyDown += MainWindow_KeyDown;
+        }
+
+        /// <summary>
+        /// 按 Esc 等同于点击关闭按钮。
+        /// </summary>
+        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            // 下拉框、弹窗等控件自行处理 Esc 时不重复响应
+            if (e.Handled || e.Key != Key.Escape)
+            {
+                return;
+            }
+
+            // 有模态窗口打开时交给模态窗口处理
+            if (OwnedWindows.Cast<Window>().Any(window => window.IsVisible))
+            {
+                return;
+            }
+
+            e.Handled = true;
+            Close();
         }
 
         /// <summary>
